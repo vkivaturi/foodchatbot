@@ -4,7 +4,7 @@ const userLib = require("./userLib");
 
 // initiates database
 const MongoClient = require('mongodb').MongoClient;
-const url = "enter database url"
+const url = "insert database url"
 
 // initiates bot
 require('dotenv').config();
@@ -122,14 +122,23 @@ bot.onText(/\/reply/, (msg, match) => {
             bot.sendMessage(chatId, userLib.ask_status_clarify)
             save_to_userReg_cache(userName, userLib.ask_status)}
         }
-    // saves address and asks for phone number
+    // saves address and asks for pincode
     else if (last_q === userLib.ask_address) {
         setUserAttribute({"address": msg_text},userName)
-        bot.sendMessage(chatId, userLib.ask_phone)
-        save_to_userReg_cache(userName, userLib.ask_phone)
+        bot.sendMessage(chatId, userLib.ask_pincode)
+        save_to_userReg_cache(userName, userLib.ask_pincode)
     }
+    // saves pincode and asks for phone number
+    else if (last_q === userLib.ask_pincode) {
+        if (msg_text.length === 6 && msg_text.match(/^[0-9]+$/) != null) {
+            setUserAttribute({"pincode": msg_text},userName)
+            bot.sendMessage(chatId, userLib.ask_phone)
+            save_to_userReg_cache(userName, userLib.ask_phone)}
+        else {
+            bot.sendMessage(chatId, userLib.ask_pincode_clarify)
+            save_to_userReg_cache(userName, userLib.ask_pincode)}}
     // saves phone number and completes registration process
-    else if (last_q === ask_phone) {
+    else if (last_q === userLib.ask_phone) {
         if (msg_text.length === 12 && msg_text.match(/^[0-9]+$/) != null) {
             setUserAttribute({"phoneNumber": msg_text},userName)
             bot.sendMessage(chatId, userLib.msg_successful_reg) }
@@ -150,6 +159,7 @@ bot.onText(/\/reply/, (msg, match) => {
         bot.sendMessage(chatId, userLib.msg_timeout)
     }
     })
+
 
 // when a user sends a text starting with /start, the bot collects their telegram user name and chat id, as well as calling the checkUserNew function
  bot.onText(/\/start/, (msg) => {
